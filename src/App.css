@@ -1,0 +1,42 @@
+/* Navbar layout */
+.nav-links {
+	display: flex;
+	align-items: center;
+	width: 100%;
+}
+
+/* Agrupa los enlaces principales y deja espacio para que nav-right se alinee a la derecha */
+.nav-left {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex: 1; /* take remaining space so nav-right (logout) is pushed to the far right */
+}
+
+/* Empuja la sección derecha hacia la esquina derecha */
+.nav-right {
+	display: flex;
+	gap: 28px;
+	align-items: center;
+}
+
+/* Botón de notificaciones — apariencia simple, se puede ajustar */
+/* Notification styles are defined in index.css */
+
+/* Botón cerrar sesión — mantiene aspecto parecido, con separación */
+.logout-btn {
+	background: transparent;
+	border: 1px solid rgba(255,255,255,0.35);
+	color: white;
+	padding: 6px 12px; /* a bit wider so it doesn't visually crowd the icon */
+	border-radius: 6px;
+	cursor: pointer;
+	margin-left: 12px; /* explicit separation from notif circle */
+	min-width: 110px; /* ensure button has some breathing room */
+}
+
+/* ensure extra separation from notification circle on small screens */
+.nav-right .notif-circle {
+	margin-right: 12px; /* buffer between bell and logout */
+}
+

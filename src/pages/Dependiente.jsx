@@ -12,7 +12,10 @@ const Dependiente = () => {
         age: '',
         gender: '',
         relationship: '',
-        assignedDoctor: ''
+        assignedDoctor: '',
+        bloodGroup: '',
+        genotype: '',
+        knownAllergies: ''
     });
 
     const [doctors, setDoctors] = useState([]);
@@ -79,7 +82,10 @@ const Dependiente = () => {
                 dateOfBirth: formData.dateOfBirth,
                 gender: formData.gender,
                 relationship: formData.relationship,
-                assignedDoctorId: formData.assignedDoctor || null
+                assignedDoctorId: formData.assignedDoctor || null,
+                bloodGroup: formData.bloodGroup || null,
+                genotype: formData.genotype || null,
+                knownAllergies: formData.knownAllergies || null
             });
 
             if (response.data.statusCode === 200 || response.data.statusCode === 201) {
@@ -251,6 +257,66 @@ const Dependiente = () => {
                                 </option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="bloodGroup" className="form-label">
+                                Grupo Sanguíneo
+                            </label>
+                            <select
+                                id="bloodGroup"
+                                name="bloodGroup"
+                                value={formData.bloodGroup}
+                                onChange={handleChange}
+                                className="form-input"
+                            >
+                                <option value="">Seleccione grupo sanguíneo (opcional)</option>
+                                <option value="A_POSITIVE">A+</option>
+                                <option value="A_NEGATIVE">A-</option>
+                                <option value="B_POSITIVE">B+</option>
+                                <option value="B_NEGATIVE">B-</option>
+                                <option value="O_POSITIVE">O+</option>
+                                <option value="O_NEGATIVE">O-</option>
+                                <option value="AB_POSITIVE">AB+</option>
+                                <option value="AB_NEGATIVE">AB-</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="genotype" className="form-label">
+                                Genotipo
+                            </label>
+                            <select
+                                id="genotype"
+                                name="genotype"
+                                value={formData.genotype}
+                                onChange={handleChange}
+                                className="form-input"
+                            >
+                                <option value="">Seleccione genotipo (opcional)</option>
+                                <option value="AA">AA</option>
+                                <option value="AS">AS</option>
+                                <option value="AC">AC</option>
+                                <option value="SS">SS</option>
+                                <option value="SC">SC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="knownAllergies" className="form-label">
+                            Alergias Conocidas
+                        </label>
+                        <textarea
+                            id="knownAllergies"
+                            name="knownAllergies"
+                            value={formData.knownAllergies}
+                            onChange={handleChange}
+                            className="form-input"
+                            rows="3"
+                            placeholder="Ingrese alergias conocidas (opcional)"
+                        />
                     </div>
 
                     <div className="form-actions">

@@ -149,10 +149,28 @@ const DoctorProfile = () => {
 
     // Construct full URL for profile picture
     const getProfilePictureUrl = () => {
+        const url = userData?.profilePictureUrl;
+        if (!url) return null;
 
-        console.log("PRofile url is: ", userData?.profilePictureUrl)
-        if (!userData?.profilePictureUrl) return null;
-        return userData.profilePictureUrl;
+        // If backend returned a relative path, prefix the API origin.
+        // Also add a cache-buster when upload was just successful so browser fetches new image.
+        const cacheBuster = uploadSuccess ? `?t=${Date.now()}` : '';
+
+        try {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return `${url}${cacheBuster}`;
+            }
+        } catch (e) {
+            // fallthrough
+        }
+
+        // If it's a root-relative path like '/uploads/..'
+        if (url.startsWith('/')) {
+            return `http://localhost:8080${url}${cacheBuster}`;
+        }
+
+        // If it's a bare filename or other relative path, assume backend serves from root
+        return `http://localhost:8080/${url}${cacheBuster}`;
     };
 
 

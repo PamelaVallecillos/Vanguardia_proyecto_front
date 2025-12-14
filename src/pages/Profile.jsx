@@ -146,9 +146,25 @@ const Profile = () => {
 
     // Construct full URL for profile picture
     const getProfilePictureUrl = () => {
-        if (!userData?.profilePictureUrl) return null;
+        const url = userData?.profilePictureUrl;
+        if (!url) return null;
 
-        return userData.profilePictureUrl;
+        // Add cache buster when upload succeeded recently to force browser refresh
+        const cacheBuster = uploadSuccess ? `?t=${Date.now()}` : '';
+
+        try {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return `${url}${cacheBuster}`;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        if (url.startsWith('/')) {
+            return `http://localhost:8080${url}${cacheBuster}`;
+        }
+
+        return `http://localhost:8080/${url}${cacheBuster}`;
     };
 
 

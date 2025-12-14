@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import PasswordInput from '../components/PasswordInput';
 
 
 const Login = () => {
@@ -95,10 +96,8 @@ const Login = () => {
 
                     <div className="form-group">
                         <label className="form-label">Contraseña</label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             name="password"
-                            className="form-input"
                             value={formData.password}
                             onChange={handleChange}
                             required

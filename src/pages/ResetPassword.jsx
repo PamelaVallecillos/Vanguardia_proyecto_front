@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { apiService } from '../services/api';
+import PasswordInput from '../components/PasswordInput';
 
 
 
@@ -131,10 +132,8 @@ const ResetPassword = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label className="form-label">Nueva Contraseña</label>
-                                <input
-                                    type="password"
+                                <PasswordInput
                                     name="newPassword"
-                                    className="form-input"
                                     value={formData.newPassword}
                                     onChange={handleChange}
                                     placeholder="Ingresa tu nueva contraseña"
@@ -146,10 +145,8 @@ const ResetPassword = () => {
 
                             <div className="form-group">
                                 <label className="form-label">Confirmar Nueva Contraseña</label>
-                                <input
-                                    type="password"
+                                <PasswordInput
                                     name="confirmPassword"
-                                    className="form-input"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     placeholder="Confirma tu nueva contraseña"

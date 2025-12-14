@@ -2053,6 +2053,34 @@ main {
   }
 }
 
+/* Password input with toggle */
+.password-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-input-wrapper .form-input {
+  flex: 1;
+}
+
+.password-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #7C4DFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124,77,255,0.12);
+  border-radius: 6px;
+}
+
 .form-row-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

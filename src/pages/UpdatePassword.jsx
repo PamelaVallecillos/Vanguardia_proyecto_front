@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import PasswordInput from '../components/PasswordInput';
 
 
 const UpdatePassword = () => {
@@ -101,10 +102,8 @@ const UpdatePassword = () => {
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label">Contraseña Actual</label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             name="oldPassword"
-                            className="form-input"
                             value={formData.oldPassword}
                             onChange={handleChange}
                             placeholder="Ingresa tu contraseña actual"
@@ -114,10 +113,8 @@ const UpdatePassword = () => {
 
                     <div className="form-group">
                         <label className="form-label">Nueva Contraseña</label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             name="newPassword"
-                            className="form-input"
                             value={formData.newPassword}
                             onChange={handleChange}
                             placeholder="Ingresa tu nueva contraseña"
@@ -127,10 +124,8 @@ const UpdatePassword = () => {
 
                     <div className="form-group">
                         <label className="form-label">Confirmar Nueva Contraseña</label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             name="confirmPassword"
-                            className="form-input"
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             placeholder="Confirma tu nueva contraseña"

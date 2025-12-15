@@ -215,6 +215,14 @@ export const apiService = {
         return api.post("/consultations", consultationDTO);
     },
 
+    uploadConsultationDocuments: (consultationId, formData) => {
+        return api.post(`/consultations/${consultationId}/documents`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    },
+
     getConsultationByAppointmentId: (appointmentId) => {
         return api.get(`/consultations/appointment/${appointmentId}`);
     },
@@ -223,6 +231,10 @@ export const apiService = {
         return api.get("/consultations/history", {
             params: { patientId }
         });
+    },
+
+    getConsultationsForDoctor: () => {
+        return api.get("/consultations/doctor/my-consultations");
     },
 
 

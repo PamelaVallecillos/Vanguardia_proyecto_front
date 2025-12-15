@@ -124,6 +124,7 @@ const CreateConsultation = () => {
         }
 
         try {
+            // PASO 1: Crear consulta
             const consultationData = {
                 ...formData,
                 appointmentId: parseInt(formData.appointmentId)
@@ -132,7 +133,29 @@ const CreateConsultation = () => {
             const response = await apiService.createConsultation(consultationData);
 
             if (response.data.statusCode === 200) {
-                setSuccess('¡Consulta creada con éxito!');
+                const consultationId = response.data.data.id;
+
+                // PASO 2: Subir documentos si existen
+                if (documents.length > 0) {
+                    setUploadingDocs(true);
+                    const documentsFormData = new FormData();
+                    documents.forEach(file => {
+                        documentsFormData.append('files', file);
+                    });
+
+                    try {
+                        await apiService.uploadConsultationDocuments(consultationId, documentsFormData);
+                        setSuccess('¡Consulta y documentos creados con éxito!');
+                    } catch (uploadError) {
+                        setSuccess('Consulta creada, pero algunos documentos no se pudieron subir');
+                        console.error('Error al subir documentos:', uploadError);
+                    } finally {
+                        setUploadingDocs(false);
+                    }
+                } else {
+                    setSuccess('¡Consulta creada con éxito!');
+                }
+
                 setTimeout(() => {
                     navigate('/doctor/appointments');
                 }, 5000);
@@ -315,9 +338,9 @@ const CreateConsultation = () => {
                         <button
                             type="submit"
                             className="btn btn-primary"
-                            disabled={loading}
+                            disabled={loading || uploadingDocs}
                         >
-                            {loading ? 'Creando...' : 'Crear Consulta'}
+                            {loading ? 'Creando consulta...' : uploadingDocs ? 'Subiendo documentos...' : 'Crear Consulta'}
                         </button>
                     </div>
                 </form>

@@ -63,17 +63,21 @@ const DoctorProfile = () => {
 
     const fetchConsultations = async () => {
         try {
-            if (!doctorData?.id) {
-                console.error('No doctor ID available');
-                return;
+            const response = await apiService.getConsultationsForDoctor();
+            if (response.data.statusCode === 200) {
+                console.log('📋 DATOS DE CONSULTAS RECIBIDOS:', response.data.data);
+                console.log('📋 PRIMERA CONSULTA COMPLETA:', JSON.stringify(response.data.data[0], null, 2));
+                setConsultations(response.data.data);
             }
-            // Aquí necesitarás un endpoint específico para obtener consultas del doctor
-            // const response = await apiService.getConsultationsForDoctor(doctorData.id);
-            // if (response.data.statusCode === 200) {
-            //     setConsultations(response.data.data);
-            // }
         } catch (error) {
             console.error('Error al cargar consultas:', error);
+            console.error('Detalles del error:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+            setError('Error al cargar el historial de consultas. El servidor devolvió un error 500.');
         }
     };
 
@@ -370,35 +374,37 @@ const DoctorProfile = () => {
             <div className="fb-profile-content">
                 <div className="container">
                     <div className="fb-profile-layout">
-                        {/* Columna izquierda: Info de cuenta */}
+                        {/* Columna izquierda: Información de contacto */}
                         <div className="fb-profile-sidebar">
                             <div className="fb-card">
-                                <h3 className="fb-card-title">Información de Cuenta</h3>
+                                <h3 className="fb-card-title">Información de Contacto</h3>
                                 <div className="fb-info-list">
                                     <div className="fb-info-item">
                                         <span className="fb-info-icon">📧</span>
                                         <span className="fb-info-text">{userData?.email || 'No proporcionado'}</span>
                                     </div>
-                                    <div className="fb-info-item">
-                                        <span className="fb-info-icon">👤</span>
-                                        <span className="fb-info-text">
-                                            {userData?.roles?.map(role => role.name).join(', ') || 'No proporcionado'}
-                                        </span>
-                                    </div>
+                                    {doctorData && (
+                                        <div className="fb-info-item">
+                                            <span className="fb-info-icon">📞</span>
+                                            <span className="fb-info-text">{doctorData.phone || 'No proporcionado'}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {doctorData && (
                                 <div className="fb-card">
-                                    <h3 className="fb-card-title">Resumen Profesional</h3>
+                                    <h3 className="fb-card-title">Datos Personales</h3>
                                     <div className="fb-info-list">
                                         <div className="fb-info-item">
-                                            <span className="fb-info-icon">🏥</span>
-                                            <span className="fb-info-text">{formatSpecialization(doctorData.specialization)}</span>
+                                            <span className="fb-info-icon">👤</span>
+                                            <span className="fb-info-text">
+                                                {`${doctorData.firstName || ''} ${doctorData.lastName || ''}`.trim() || 'No proporcionado'}
+                                            </span>
                                         </div>
                                         <div className="fb-info-item">
-                                            <span className="fb-info-icon">🆔</span>
-                                            <span className="fb-info-text">ID: {doctorData.id}</span>
+                                            <span className="fb-info-icon">⚧</span>
+                                            <span className="fb-info-text">{doctorData.gender || 'No proporcionado'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -411,41 +417,23 @@ const DoctorProfile = () => {
                                 <>
                                     {doctorData ? (
                                         <>
+                                            {/* Información Profesional */}
                                             <div className="fb-card">
                                                 <h3 className="fb-card-title">Información Profesional</h3>
                                                 <div className="fb-medical-grid">
                                                     <div className="fb-medical-item">
-                                                        <label>Nombre</label>
-                                                        <p>{doctorData.firstName || 'No proporcionado'}</p>
+                                                        <label>Número de Licencia</label>
+                                                        <p>{doctorData.licenseNumber || 'No proporcionado'}</p>
                                                     </div>
                                                     <div className="fb-medical-item">
-                                                        <label>Apellido</label>
-                                                        <p>{doctorData.lastName || 'No proporcionado'}</p>
+                                                        <label>Tiempo de Consulta</label>
+                                                        <p>{doctorData.consultationDuration ? `${doctorData.consultationDuration} minutos` : 'No especificado'}</p>
                                                     </div>
                                                     <div className="fb-medical-item">
-                                                        <label>Género</label>
-                                                        <p>{doctorData.gender || 'No proporcionado'}</p>
-                                                    </div>
-                                                    <div className="fb-medical-item">
-                                                        <label>Teléfono</label>
-                                                        <p>{doctorData.phone || 'No proporcionado'}</p>
-                                                    </div>
-                                                    <div className="fb-medical-item fb-full-width">
                                                         <label>Especialización Principal</label>
                                                         <p>{formatSpecialization(doctorData.specialization)}</p>
                                                     </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Especializaciones Adicionales */}
-                                            <div className="fb-card">
-                                                <h3 className="fb-card-title">Especializaciones</h3>
-                                                <div className="fb-medical-grid">
-                                                    <div className="fb-medical-item fb-full-width">
-                                                        <label>Especialización Principal</label>
-                                                        <p>{formatSpecialization(doctorData.specialization)}</p>
-                                                    </div>
-                                                    <div className="fb-medical-item fb-full-width">
+                                                    <div className="fb-medical-item">
                                                         <label>Especializaciones Adicionales</label>
                                                         {doctorData.additionalSpecializations && doctorData.additionalSpecializations.length > 0 ? (
                                                             <div className="tags-display">
@@ -465,7 +453,7 @@ const DoctorProfile = () => {
                                             {/* Restricciones de Pacientes */}
                                             <div className="fb-card">
                                                 <h3 className="fb-card-title">Restricciones de Pacientes</h3>
-                                                <div className="fb-medical-grid">
+                                                <div className="fb-medical-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                                                     <div className="fb-medical-item">
                                                         <label>Restricción de Género</label>
                                                         <p>
@@ -485,10 +473,6 @@ const DoctorProfile = () => {
                                                     <div className="fb-medical-item">
                                                         <label>Edad Máxima</label>
                                                         <p>{doctorData.maxAge != null ? `${doctorData.maxAge} años` : 'Sin restricción'}</p>
-                                                    </div>
-                                                    <div className="fb-medical-item">
-                                                        <label>Tiempo de Consulta</label>
-                                                        <p>{doctorData.consultationDuration ? `${doctorData.consultationDuration} minutos` : 'No especificado'}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -652,6 +636,20 @@ const DoctorProfile = () => {
                             {activeTab === 'historial-consultas' && (
                                 <div className="fb-card">
                                     <h3 className="fb-card-title">Historial de Consultas</h3>
+                                    {error && error.includes('historial de consultas') && (
+                                        <div className="fb-error-message" style={{
+                                            padding: '15px',
+                                            backgroundColor: '#fee',
+                                            color: '#c33',
+                                            borderRadius: '8px',
+                                            marginBottom: '20px',
+                                            border: '1px solid #fcc'
+                                        }}>
+                                            {error}
+                                            <br />
+                                            <small>Verifica la consola del navegador para más detalles técnicos.</small>
+                                        </div>
+                                    )}
                                     {consultations.length > 0 ? (
                                         <div className="fb-consultations-list">
                                             {consultations.map((consultation) => (
@@ -659,20 +657,74 @@ const DoctorProfile = () => {
                                                     <div className="fb-consultation-header">
                                                         <h4>Consulta - {consultation.patientName || 'Paciente'}</h4>
                                                         <span className="fb-consultation-date">
-                                                            {new Date(consultation.consultationDate).toLocaleDateString('es-ES')}
+                                                            {new Date(consultation.consultationDate).toLocaleDateString('es-ES', {
+                                                                year: 'numeric',
+                                                                month: 'long',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
                                                         </span>
                                                     </div>
                                                     <div className="fb-consultation-details">
+                                                        {consultation.appointmentId && (
+                                                            <div className="fb-consultation-section">
+                                                                <p><strong>Detalles de la Cita:</strong></p>
+                                                                <p>ID de Cita: {consultation.appointmentId}</p>
+                                                            </div>
+                                                        )}
                                                         {consultation.subjectiveNotes && (
                                                             <div className="fb-consultation-section">
                                                                 <p><strong>Notas Subjetivas:</strong></p>
                                                                 <p>{consultation.subjectiveNotes}</p>
                                                             </div>
                                                         )}
+                                                        {consultation.objectiveFindings && (
+                                                            <div className="fb-consultation-section">
+                                                                <p><strong>Hallazgos Objetivos:</strong></p>
+                                                                <p>{consultation.objectiveFindings}</p>
+                                                            </div>
+                                                        )}
                                                         {consultation.assessment && (
                                                             <div className="fb-consultation-section">
                                                                 <p><strong>Evaluación:</strong></p>
                                                                 <p>{consultation.assessment}</p>
+                                                            </div>
+                                                        )}
+                                                        {consultation.plan && (
+                                                            <div className="fb-consultation-section">
+                                                                <p><strong>Plan de Tratamiento y/o Receta Médica:</strong></p>
+                                                                <p>{consultation.plan}</p>
+                                                            </div>
+                                                        )}
+                                                        {consultation.documents && consultation.documents.length > 0 && (
+                                                            <div className="fb-consultation-section">
+                                                                <p><strong>Documentos Adjuntos:</strong></p>
+                                                                <div className="fb-documents-list">
+                                                                    {consultation.documents.map((doc, index) => (
+                                                                        <a 
+                                                                            key={index}
+                                                                            href={`http://localhost:8080${doc.fileUrl}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="fb-document-link"
+                                                                            style={{
+                                                                                display: 'block',
+                                                                                padding: '8px 12px',
+                                                                                marginBottom: '8px',
+                                                                                backgroundColor: '#f0f2f5',
+                                                                                borderRadius: '6px',
+                                                                                textDecoration: 'none',
+                                                                                color: '#1877f2',
+                                                                                transition: 'background-color 0.2s'
+                                                                            }}
+                                                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#e4e6eb'}
+                                                                            onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f2f5'}
+                                                                        >
+                                                                            📎 {doc.fileName || `Documento ${index + 1}`}
+                                                                        </a>
+                                                                    ))}
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>

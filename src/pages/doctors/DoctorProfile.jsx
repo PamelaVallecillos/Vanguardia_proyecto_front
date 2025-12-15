@@ -90,6 +90,73 @@ const DoctorProfile = () => {
     }
 
 
+    const formatDateTime = (dateTimeString) => {
+        if (!dateTimeString) return '';
+        return new Date(dateTimeString).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+            'SCHEDULED': { class: 'status-scheduled', text: 'Programada' },
+            'COMPLETED': { class: 'status-completed', text: 'Completada' },
+            'CANCELLED': { class: 'status-cancelled', text: 'Cancelada' },
+            'IN_PROGRESS': { class: 'status-in-progress', text: 'En Progreso' }
+        };
+
+        const config = statusConfig[status] || { class: 'status-default', text: status };
+        return <span className={`status-badge ${config.class}`}>{config.text}</span>;
+    };
+
+
+    const handleCompleteAppointment = async (appointmentId) => {
+        if (!window.confirm('¿Está seguro de que desea marcar esta cita como completada?')) {
+            return;
+        }
+
+        try {
+            const response = await apiService.completeAppointment(appointmentId);
+            if (response.data.statusCode === 200) {
+                fetchAppointments();
+            } else {
+                alert('No se pudo completar la cita');
+            }
+        } catch (error) {
+            alert('Error al completar la cita');
+        }
+    };
+
+
+    const handleCancelAppointment = async (appointmentId) => {
+        if (!window.confirm('¿Está seguro de que desea cancelar esta cita?')) {
+            return;
+        }
+
+        try {
+            const response = await apiService.cancelAppointment(appointmentId);
+            if (response.data.statusCode === 200) {
+                fetchAppointments();
+            } else {
+                alert('No se pudo cancelar la cita');
+            }
+        } catch (error) {
+            alert('Error al cancelar la cita');
+        }
+    };
+
+
+    const formatPatientInfo = (patient) => {
+        if (!patient) return 'Paciente';
+        return `${patient.firstName} ${patient.lastName} (${patient.user?.email})`;
+    };
+
+
 
     const handleUpdateProfile = () => {
         navigate('/doctor/update-profile');
@@ -288,7 +355,10 @@ const DoctorProfile = () => {
                         </button>
                         <button 
                             className={`fb-tab ${activeTab === 'calendario' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('calendario')}
+                            onClick={() => {
+                                setActiveTab('calendario');
+                                fetchAppointments();
+                            }}
                         >
                             Calendario
                         </button>
@@ -432,26 +502,98 @@ const DoctorProfile = () => {
                             {activeTab === 'control-citas' && (
                                 <div className="fb-card">
                                     <h3 className="fb-card-title">Control de Citas</h3>
-                                    {appointments.length > 0 ? (
-                                        <div className="fb-appointments-list">
+
+                                    {appointments.length === 0 ? (
+                                        <div className="fb-empty-state">
+                                            <h3>No se encontraron citas</h3>
+                                            <p>No tienes citas programadas aún.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="appointments-list">
                                             {appointments.map((appointment) => (
-                                                <div key={appointment.id} className="fb-appointment-card">
-                                                    <div className="fb-appointment-header">
-                                                        <h4>{appointment.patientName || 'Paciente'}</h4>
-                                                        <span className={`fb-status-badge status-${appointment.status?.toLowerCase()}`}>
-                                                            {appointment.status}
-                                                        </span>
+                                                <div key={appointment.id} className="appointment-card">
+                                                    <div className="appointment-header">
+                                                        <div className="appointment-info">
+                                                            <h3 className="patient-name">Paciente: {formatPatientInfo(appointment.patient)}</h3>
+                                                            <p className="appointment-time">{formatDateTime(appointment.startTime)}</p>
+                                                        </div>
+                                                        <div className="appointment-actions">
+                                                            {getStatusBadge(appointment.status)}
+                                                            <div className="action-buttons">
+                                                                {appointment.status === 'SCHEDULED' && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => handleCompleteAppointment(appointment.id)}
+                                                                            className="btn btn-success btn-sm"
+                                                                        >
+                                                                            Completar
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleCancelAppointment(appointment.id)}
+                                                                            className="btn btn-danger btn-sm"
+                                                                        >
+                                                                            Cancelar
+                                                                        </button>
+                                                                        <Link
+                                                                            to={`/doctor/patient-consultation-history?patientId=${appointment.patient.id}`}
+                                                                            className="btn btn-info btn-sm"
+                                                                        >
+                                                                            Ver Historial
+                                                                        </Link>
+                                                                    </>
+                                                                )}
+                                                                {appointment.status === 'COMPLETED' && (
+                                                                    <Link
+                                                                        to={`/doctor/create-consultation?appointmentId=${appointment.id}`}
+                                                                        className="btn btn-primary btn-sm"
+                                                                    >
+                                                                        Crear Consulta
+                                                                    </Link>
+                                                                )}
+                                                                {appointment.meetingLink && appointment.status === 'SCHEDULED' && (
+                                                                    <a
+                                                                        href={appointment.meetingLink}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn btn-outline btn-sm"
+                                                                    >
+                                                                        Unirse a la Reunión
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="fb-appointment-details">
-                                                        <p><strong>Fecha:</strong> {new Date(appointment.appointmentDate).toLocaleDateString('es-ES')}</p>
-                                                        <p><strong>Hora:</strong> {appointment.appointmentTime}</p>
-                                                        {appointment.reason && <p><strong>Motivo:</strong> {appointment.reason}</p>}
+
+                                                    <div className="appointment-details">
+                                                        <div className="detail-row">
+                                                            <div className="detail-item">
+                                                                <label>Propósito:</label>
+                                                                <span>{appointment.purposeOfConsultation}</span>
+                                                            </div>
+                                                            <div className="detail-item">
+                                                                <label>Duración:</label>
+                                                                <span>1 hora</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="detail-item">
+                                                            <label>Síntomas:</label>
+                                                            <span>{appointment.initialSymptoms}</span>
+                                                        </div>
+
+                                                        <div className="detail-item">
+                                                            <label>Información del Paciente:</label>
+                                                            <div className="patient-details">
+                                                                <span><strong>Fecha de Nacimiento:</strong> {appointment.patient?.dateOfBirth ? new Date(appointment.patient.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
+                                                                <span><strong>Grupo Sanguíneo:</strong> {appointment.patient?.bloodGroup?.replace('_', ' ')}</span>
+                                                                <span><strong>Genotipo:</strong> {appointment.patient?.genotype}</span>
+                                                                <span><strong>Alergias:</strong> {appointment.patient?.knownAllergies || 'Ninguna'}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <p className="fb-empty-state">No tienes citas programadas</p>
                                     )}
                                 </div>
                             )}

@@ -80,6 +80,52 @@ const Profile = () => {
         }
     }
 
+    const formatDateTime = (dateTimeString) => {
+        try {
+            return new Date(dateTimeString).toLocaleString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return dateTimeString;
+        }
+    };
+
+
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+            'SCHEDULED': { class: 'status-scheduled', text: 'Programada' },
+            'COMPLETED': { class: 'status-completed', text: 'Completada' },
+            'CANCELLED': { class: 'status-cancelled', text: 'Cancelada' },
+            'IN_PROGRESS': { class: 'status-in-progress', text: 'En progreso' }
+        };
+
+        const config = statusConfig[status] || { class: 'status-default', text: status };
+        return <span className={`status-badge ${config.class}`}>{config.text}</span>;
+    };
+
+
+    const handleCancelAppointment = async (appointmentId) => {
+        if (!window.confirm('¿Estás seguro de que deseas cancelar esta cita?')) {
+            return;
+        }
+
+        try {
+            const response = await apiService.cancelAppointment(appointmentId);
+            if (response.data.statusCode === 200) {
+                // Refresh appointments list
+                fetchAppointments();
+            } else {
+                setError('Error al cancelar la cita');
+            }
+        } catch (error) {
+            setError('Error al cancelar la cita');
+        }
+    };
+
 
     const handleUpdateProfile = () => {
         navigate('/update-profile');
@@ -293,7 +339,10 @@ const Profile = () => {
                         </button>
                         <button 
                             className={`fb-tab ${activeTab === 'calendario' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('calendario')}
+                            onClick={() => {
+                                setActiveTab('calendario');
+                                fetchAppointments();
+                            }}
                         >
                             Calendario
                         </button>
@@ -383,26 +432,76 @@ const Profile = () => {
                             {activeTab === 'mis-citas' && (
                                 <div className="fb-card">
                                     <h3 className="fb-card-title">Mis Citas</h3>
-                                    {appointments.length > 0 ? (
+
+                                    {appointments.length === 0 ? (
+                                        <div className="fb-empty-state">
+                                            <h3>No se encontraron citas</h3>
+                                            <p>Aún no has reservado ninguna cita.</p>
+                                        </div>
+                                    ) : (
                                         <div className="fb-appointments-list">
                                             {appointments.map((appointment) => (
-                                                <div key={appointment.id} className="fb-appointment-card">
-                                                    <div className="fb-appointment-header">
-                                                        <h4>{appointment.doctorName || 'Doctor'}</h4>
-                                                        <span className={`fb-status-badge status-${appointment.status?.toLowerCase()}`}>
-                                                            {appointment.status}
-                                                        </span>
+                                                <div key={appointment.id} className="fb-appointment-card appointment-card">
+                                                    <div className="appointment-header">
+                                                        <div className="appointment-info">
+                                                            <h3 className="doctor-name">Dr. {appointment.doctor?.firstName} {appointment.doctor?.lastName}</h3>
+                                                            <p className="specialization">{appointment.doctor?.specialization?.replace(/_/g, ' ')}</p>
+                                                        </div>
+                                                        <div className="appointment-actions">
+                                                            {getStatusBadge(appointment.status)}
+                                                            {appointment.status === 'SCHEDULED' && (
+                                                                <button
+                                                                    onClick={() => handleCancelAppointment(appointment.id)}
+                                                                    className="btn btn-danger btn-sm"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="fb-appointment-details">
-                                                        <p><strong>Fecha:</strong> {new Date(appointment.appointmentDate).toLocaleDateString('es-ES')}</p>
-                                                        <p><strong>Hora:</strong> {appointment.appointmentTime}</p>
-                                                        {appointment.reason && <p><strong>Motivo:</strong> {appointment.reason}</p>}
+
+                                                    <div className="appointment-details">
+                                                        <div className="detail-row">
+                                                            <div className="detail-item">
+                                                                <label>Fecha y hora :</label>
+                                                                <span>{formatDateTime(appointment.startTime || appointment.appointmentDate)}</span>
+                                                            </div>
+                                                            <div className="detail-item">
+                                                                <label>Duración:</label>
+                                                                <span>1 hora</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {appointment.purposeOfConsultation && (
+                                                            <div className="detail-item">
+                                                                <label>Propósito:</label>
+                                                                <span>{appointment.purposeOfConsultation}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {appointment.initialSymptoms && (
+                                                            <div className="detail-item">
+                                                                <label>Síntomas:</label>
+                                                                <span>{appointment.initialSymptoms}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {appointment.meetingLink && appointment.status === 'SCHEDULED' && (
+                                                            <div className="detail-item">
+                                                                <label>Enlace de la reunión:</label>
+                                                                <a href={appointment.meetingLink} target="_blank" rel="noopener noreferrer" className="meeting-link">Unirse a la consulta por video</a>
+                                                            </div>
+                                                        )}
+
+                                                        {appointment.status === 'COMPLETED' && (
+                                                            <div className="detail-item">
+                                                                <Link to={`/consultation-history?appointmentId=${appointment.id}`} className="btn btn-outline btn-sm">Ver notas de la consulta</Link>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <p className="fb-empty-state">No tienes citas programadas</p>
                                     )}
                                 </div>
                             )}

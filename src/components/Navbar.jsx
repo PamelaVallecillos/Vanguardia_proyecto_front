@@ -102,7 +102,7 @@ const Navbar = () => {
                                         {isDoctor && (
                                             <>
                                                 <Link to="/doctor/profile" className={isActiveLink('/doctor/profile')}>
-                                                    Panel de doctor
+                                                    Perfil de doctor
                                                 </Link>
                                                 <Link to="/doctor/appointments" className={isActiveLink('/doctor/appointments')}>
                                                     Mis citas

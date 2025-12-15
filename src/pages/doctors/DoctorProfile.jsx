@@ -470,9 +470,9 @@ const DoctorProfile = () => {
                                                         <label>Restricción de Género</label>
                                                         <p>
                                                             {doctorData.genderRestriction 
-                                                                ? doctorData.genderRestriction === 'MALE' 
+                                                                ? doctorData.genderRestriction === 'MASCULINO' 
                                                                     ? 'Solo Hombres' 
-                                                                    : doctorData.genderRestriction === 'FEMALE' 
+                                                                    : doctorData.genderRestriction === 'FEMENINO' 
                                                                         ? 'Solo Mujeres' 
                                                                         : 'Sin restricción'
                                                                 : 'Sin restricción'}

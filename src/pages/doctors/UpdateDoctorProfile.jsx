@@ -89,9 +89,10 @@ const UpdateDoctorProfile = () => {
 
 
     const handleChange = (e) => {
+        const value = e.target.value === '' ? null : e.target.value;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
     };
 
@@ -291,7 +292,7 @@ const UpdateDoctorProfile = () => {
                             <select
                                 name="genderRestriction"
                                 className="form-input"
-                                value={formData.genderRestriction}
+                                value={formData.genderRestriction || ''}
                                 onChange={handleChange}
                             >
                                 <option value="">Sin restricción</option>

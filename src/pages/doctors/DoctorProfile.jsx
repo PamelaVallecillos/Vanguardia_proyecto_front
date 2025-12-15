@@ -480,11 +480,15 @@ const DoctorProfile = () => {
                                                     </div>
                                                     <div className="fb-medical-item">
                                                         <label>Edad Mínima</label>
-                                                        <p>{doctorData.minAge ? `${doctorData.minAge} años` : 'Sin restricción'}</p>
+                                                        <p>{doctorData.minAge != null ? `${doctorData.minAge} años` : 'Sin restricción'}</p>
                                                     </div>
                                                     <div className="fb-medical-item">
                                                         <label>Edad Máxima</label>
-                                                        <p>{doctorData.maxAge ? `${doctorData.maxAge} años` : 'Sin restricción'}</p>
+                                                        <p>{doctorData.maxAge != null ? `${doctorData.maxAge} años` : 'Sin restricción'}</p>
+                                                    </div>
+                                                    <div className="fb-medical-item">
+                                                        <label>Tiempo de Consulta</label>
+                                                        <p>{doctorData.consultationDuration ? `${doctorData.consultationDuration} minutos` : 'No especificado'}</p>
                                                     </div>
                                                 </div>
                                             </div>

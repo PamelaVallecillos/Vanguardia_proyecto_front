@@ -492,6 +492,53 @@ const DoctorProfile = () => {
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Horario de Atención */}
+                                            <div className="fb-card">
+                                                <h3 className="fb-card-title">Horario de Atención</h3>
+                                                {doctorData.schedules && doctorData.schedules.length > 0 ? (
+                                                    <div className="schedule-display-table">
+                                                        <table className="schedule-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Día</th>
+                                                                    <th>Horario</th>
+                                                                    <th>Almuerzo</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {doctorData.schedules.map((schedule, index) => {
+                                                                    const dayNames = {
+                                                                        'MONDAY': 'Lunes',
+                                                                        'TUESDAY': 'Martes',
+                                                                        'WEDNESDAY': 'Miércoles',
+                                                                        'THURSDAY': 'Jueves',
+                                                                        'FRIDAY': 'Viernes',
+                                                                        'SATURDAY': 'Sábado',
+                                                                        'SUNDAY': 'Domingo'
+                                                                    };
+                                                                    return (
+                                                                        <tr key={index}>
+                                                                            <td className="schedule-day">{dayNames[schedule.dayOfWeek] || schedule.dayOfWeek}</td>
+                                                                            <td className="schedule-hours">
+                                                                                {schedule.startTime} - {schedule.endTime}
+                                                                            </td>
+                                                                            <td className="schedule-lunch">
+                                                                                {schedule.lunchStart && schedule.lunchEnd 
+                                                                                    ? `${schedule.lunchStart} - ${schedule.lunchEnd}`
+                                                                                    : 'Sin almuerzo'
+                                                                                }
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted">No se ha configurado horario de atención</p>
+                                                )}
+                                            </div>
                                         </>
                                     ) : (
                                         <div className="fb-card">

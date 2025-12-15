@@ -61,7 +61,7 @@ const UpdateDoctorProfile = () => {
                     minAge: doctorData.minAge || '',
                     maxAge: doctorData.maxAge || '',
                     consultationDuration: doctorData.consultationDuration || '',
-                    schedule: doctorData.schedule || formData.schedule
+                    schedule: doctorData.schedules ? convertSchedulesArrayToObject(doctorData.schedules) : formData.schedule
                 });
             }
 
@@ -88,6 +88,79 @@ const UpdateDoctorProfile = () => {
     }
 
 
+    // Convertir array de schedules del backend a objeto schedule del frontend
+    const convertSchedulesArrayToObject = (schedulesArray) => {
+        const scheduleObject = {
+            monday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            tuesday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            wednesday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            thursday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            friday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            saturday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
+            sunday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' }
+        };
+
+        const dayMapping = {
+            'MONDAY': 'monday',
+            'TUESDAY': 'tuesday',
+            'WEDNESDAY': 'wednesday',
+            'THURSDAY': 'thursday',
+            'FRIDAY': 'friday',
+            'SATURDAY': 'saturday',
+            'SUNDAY': 'sunday'
+        };
+
+        if (schedulesArray && Array.isArray(schedulesArray)) {
+            schedulesArray.forEach(schedule => {
+                const dayKey = dayMapping[schedule.dayOfWeek];
+                if (dayKey) {
+                    scheduleObject[dayKey] = {
+                        enabled: schedule.isActive || false,
+                        startTime: schedule.startTime || '',
+                        endTime: schedule.endTime || '',
+                        lunchStart: schedule.lunchStart || '',
+                        lunchEnd: schedule.lunchEnd || ''
+                    };
+                }
+            });
+        }
+
+        return scheduleObject;
+    };
+
+
+    // Convertir objeto schedule del frontend a array schedules para el backend
+    const convertScheduleObjectToArray = (scheduleObject) => {
+        const dayMapping = {
+            'monday': 'MONDAY',
+            'tuesday': 'TUESDAY',
+            'wednesday': 'WEDNESDAY',
+            'thursday': 'THURSDAY',
+            'friday': 'FRIDAY',
+            'saturday': 'SATURDAY',
+            'sunday': 'SUNDAY'
+        };
+
+        const schedulesArray = [];
+
+        Object.keys(scheduleObject).forEach(dayKey => {
+            const dayData = scheduleObject[dayKey];
+            if (dayData.enabled) {
+                schedulesArray.push({
+                    dayOfWeek: dayMapping[dayKey],
+                    isActive: true,
+                    startTime: dayData.startTime || '',
+                    endTime: dayData.endTime || '',
+                    lunchStart: dayData.lunchStart || '',
+                    lunchEnd: dayData.lunchEnd || ''
+                });
+            }
+        });
+
+        return schedulesArray;
+    };
+
+
     const handleChange = (e) => {
         const value = e.target.value === '' ? null : e.target.value;
         setFormData({
@@ -108,7 +181,15 @@ const UpdateDoctorProfile = () => {
         setSuccess('');
 
         try {
-            const response = await apiService.updateMyDoctorProfile(formData);
+            // Convertir schedule a schedules para el backend
+            const dataToSend = {
+                ...formData,
+                schedules: convertScheduleObjectToArray(formData.schedule)
+            };
+            // Remover el campo schedule del objeto (ya enviamos schedules)
+            delete dataToSend.schedule;
+
+            const response = await apiService.updateMyDoctorProfile(dataToSend);
 
             if (response.data.statusCode === 200) {
                 setSuccess('¡Perfil actualizado con éxito!');

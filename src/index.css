@@ -2124,6 +2124,36 @@ main {
   min-width: 100px;
 }
 
+/* Schedule Display Table (Read-only) */
+.schedule-display-table {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.schedule-display-table .schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.schedule-display-table .schedule-day {
+  font-weight: 600;
+  color: #050505;
+  text-align: left;
+  padding: 12px;
+}
+
+.schedule-display-table .schedule-hours {
+  color: #1877f2;
+  font-weight: 500;
+  padding: 12px;
+}
+
+.schedule-display-table .schedule-lunch {
+  color: #65676b;
+  padding: 12px;
+  font-style: italic;
+}
+
 /* Contenedor de input de tiempo con AM/PM */
 .time-input-wrapper {
   display: flex;

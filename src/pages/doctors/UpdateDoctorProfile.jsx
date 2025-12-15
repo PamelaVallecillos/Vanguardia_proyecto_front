@@ -16,6 +16,7 @@ const UpdateDoctorProfile = () => {
         genderRestriction: '',
         minAge: '',
         maxAge: '',
+        consultationDuration: '',
         schedule: {
             monday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
             tuesday: { enabled: false, startTime: '', endTime: '', lunchStart: '', lunchEnd: '' },
@@ -59,6 +60,7 @@ const UpdateDoctorProfile = () => {
                     genderRestriction: doctorData.genderRestriction || '',
                     minAge: doctorData.minAge || '',
                     maxAge: doctorData.maxAge || '',
+                    consultationDuration: doctorData.consultationDuration || '',
                     schedule: doctorData.schedule || formData.schedule
                 });
             }
@@ -283,7 +285,7 @@ const UpdateDoctorProfile = () => {
 
                     {/* Restricciones */}
                     <h3 className="section-subtitle">Restricciones de Pacientes</h3>
-                    <div className="form-row-3">
+                    <div className="form-row-4">
                         <div className="form-group">
                             <label className="form-label">Restricción de Género</label>
                             <select
@@ -324,6 +326,22 @@ const UpdateDoctorProfile = () => {
                                 min="0"
                                 max="120"
                             />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Tiempo de Consulta (minutos)</label>
+                            <input
+                                type="number"
+                                name="consultationDuration"
+                                className="form-input"
+                                value={formData.consultationDuration}
+                                onChange={handleChange}
+                                placeholder="Ej: 30"
+                                min="15"
+                                max="180"
+                                step="15"
+                            />
+                            <small className="form-helper-text">Duración estimada de cada consulta</small>
                         </div>
                     </div>
 

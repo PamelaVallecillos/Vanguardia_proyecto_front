@@ -18,6 +18,8 @@ const CreateConsultation = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [documents, setDocuments] = useState([]);
+    const [uploadingDocs, setUploadingDocs] = useState(false);
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -72,6 +74,37 @@ const CreateConsultation = () => {
             ...formData,
             [e.target.name]: e.target.value
         });
+    };
+
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        
+        // Validar tamaño de archivos (máximo 10MB por archivo)
+        const validFiles = files.filter(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                setError(`El archivo ${file.name} excede el tamaño máximo de 10MB`);
+                return false;
+            }
+            return true;
+        });
+
+        setDocuments(prev => [...prev, ...validFiles]);
+        e.target.value = ''; // Limpiar input
+    };
+
+
+    const removeDocument = (index) => {
+        setDocuments(prev => prev.filter((_, i) => i !== index));
+    };
+
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     };
 
 
@@ -147,7 +180,7 @@ const CreateConsultation = () => {
 
     return (
         <div className="container">
-            <div className="form-container">
+            <div className="form-container form-container-wide">
                 <h2 className="form-title">Crear Consulta</h2>
 
                 {error && (
@@ -218,7 +251,7 @@ const CreateConsultation = () => {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Plan de Tratamiento</label>
+                        <label className="form-label">Plan de Tratamiento y/o Receta Medica</label>
                         <textarea
                             name="plan"
                             className="form-input"
@@ -229,6 +262,46 @@ const CreateConsultation = () => {
                             required
                         />
                         <small className="form-help">Plan de tratamiento y recomendaciones</small>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Documentos Adjuntos</label>
+                        <div className="file-upload-area">
+                            <input
+                                type="file"
+                                id="documents"
+                                multiple
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }}
+                            />
+                            <label htmlFor="documents" className="file-upload-button">
+                                📎 Seleccionar archivos
+                            </label>
+                            <small className="form-help">Formatos: PDF, DOC, DOCX, JPG, PNG (máx. 10MB por archivo)</small>
+                        </div>
+
+                        {documents.length > 0 && (
+                            <div className="uploaded-files-list">
+                                {documents.map((file, index) => (
+                                    <div key={index} className="uploaded-file-item">
+                                        <span className="file-icon">📄</span>
+                                        <div className="file-info">
+                                            <span className="file-name">{file.name}</span>
+                                            <span className="file-size">{formatFileSize(file.size)}</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="file-remove-btn"
+                                            onClick={() => removeDocument(index)}
+                                            title="Eliminar archivo"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-actions">

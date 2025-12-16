@@ -371,59 +371,41 @@ const Profile = () => {
             <div className="fb-profile-content">
                 <div className="container">
                     <div className="fb-profile-layout">
-                        {/* Columna izquierda: Dependientes */}
+                        {/* Columna izquierda: Información de contacto y datos personales */}
                         <div className="fb-profile-sidebar">
                             <div className="fb-card">
-                                <h3 className="fb-card-title">Dependientes</h3>
-                                <div className="fb-dependents-list">
-                                    {loadingDependents ? (
-                                        <p className="fb-empty-state">Cargando...</p>
-                                    ) : dependents.length > 0 ? (
-                                        dependents.map(dependent => (
-                                            <div key={dependent.id} className="fb-dependent-item" style={{
-                                                padding: '12px',
-                                                borderBottom: '1px solid #eee',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
-                                            }}>
-                                                <div>
-                                                    <strong>{dependent.firstName} {dependent.lastName}</strong>
-                                                    <p style={{ fontSize: '12px', color: '#666', margin: '4px 0' }}>
-                                                        {dependent.relationship} - Expediente: {dependent.expedienteNumber}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="fb-empty-state">No hay dependientes registrados</p>
-                                    )}
-                                    {dependents.length > 0 && (
-                                        <button 
-                                            className="fb-btn fb-btn-link" 
-                                            onClick={() => navigate('/agregar-dependiente')}
-                                        >
-                                            + Agregar otro dependiente
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="fb-card">
-                                <h3 className="fb-card-title">Información de Cuenta</h3>
+                                <h3 className="fb-card-title">Información de Contacto</h3>
                                 <div className="fb-info-list">
                                     <div className="fb-info-item">
                                         <span className="fb-info-icon">📧</span>
                                         <span className="fb-info-text">{userData?.email || 'No proporcionado'}</span>
                                     </div>
-                                    <div className="fb-info-item">
-                                        <span className="fb-info-icon">👤</span>
-                                        <span className="fb-info-text">
-                                            {userData?.roles?.map(role => role.name).join(', ') || 'No proporcionado'}
-                                        </span>
-                                    </div>
+                                    {patientData && (
+                                        <div className="fb-info-item">
+                                            <span className="fb-info-icon">📞</span>
+                                            <span className="fb-info-text">{patientData.phone || 'No proporcionado'}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+
+                            {patientData && (
+                                <div className="fb-card">
+                                    <h3 className="fb-card-title">Datos Personales</h3>
+                                    <div className="fb-info-list">
+                                        <div className="fb-info-item">
+                                            <span className="fb-info-icon">👤</span>
+                                            <span className="fb-info-text">
+                                                {`${patientData.firstName || ''} ${patientData.lastName || ''}`.trim() || 'No proporcionado'}
+                                            </span>
+                                        </div>
+                                        <div className="fb-info-item">
+                                            <span className="fb-info-icon">📅</span>
+                                            <span className="fb-info-text">{formatDate(patientData.dateOfBirth)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Columna derecha: Contenido principal */}
@@ -431,45 +413,112 @@ const Profile = () => {
                             {activeTab === 'info-medica' && (
                                 <>
                                     {patientData ? (
-                                        <div className="fb-card">
-                                            <h3 className="fb-card-title">Información Médica</h3>
-                                            
-                                            {/* Número de Expediente */}
-                                            <div className="alert alert-info" style={{ marginBottom: '20px' }}>
-                                                <strong>Número de Expediente:</strong> {patientData.expedienteNumber || 'No asignado'}
-                                            </div>
-                                            
-                                            <div className="fb-medical-grid">
-                                                <div className="fb-medical-item">
-                                                    <label>Nombre</label>
-                                                    <p>{patientData.firstName || 'No proporcionado'}</p>
+                                        <>
+                                            <div className="fb-card">
+                                                <h3 className="fb-card-title">Información Médica</h3>
+                                                
+                                                {/* Número de Expediente */}
+                                                <div className="alert alert-info" style={{ marginBottom: '20px' }}>
+                                                    <strong>Número de Expediente:</strong> {patientData.expedienteNumber || 'No asignado'}
                                                 </div>
-                                                <div className="fb-medical-item">
-                                                    <label>Apellido</label>
-                                                    <p>{patientData.lastName || 'No proporcionado'}</p>
-                                                </div>
-                                                <div className="fb-medical-item">
-                                                    <label>Teléfono</label>
-                                                    <p>{patientData.phone || 'No proporcionado'}</p>
-                                                </div>
-                                                <div className="fb-medical-item">
-                                                    <label>Fecha de Nacimiento</label>
-                                                    <p>{formatDate(patientData.dateOfBirth)}</p>
-                                                </div>
-                                                <div className="fb-medical-item">
-                                                    <label>Grupo Sanguíneo</label>
-                                                    <p>{formatBloodGroup(patientData.bloodGroup)}</p>
-                                                </div>
-                                                <div className="fb-medical-item">
-                                                    <label>Genotipo</label>
-                                                    <p>{patientData.genotype || 'No proporcionado'}</p>
-                                                </div>
-                                                <div className="fb-medical-item fb-full-width">
-                                                    <label>Alergias Conocidas</label>
-                                                    <p>{patientData.knownAllergies || 'No hay alergias conocidas'}</p>
+                                                
+                                                <div className="fb-medical-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                                                    <div className="fb-medical-item">
+                                                        <label>Grupo Sanguíneo</label>
+                                                        <p>{formatBloodGroup(patientData.bloodGroup)}</p>
+                                                    </div>
+                                                    <div className="fb-medical-item">
+                                                        <label>Genotipo</label>
+                                                        <p>{patientData.genotype || 'No proporcionado'}</p>
+                                                    </div>
+                                                    <div className="fb-medical-item">
+                                                        <label>Alergias Conocidas</label>
+                                                        <p>{patientData.knownAllergies || 'No hay alergias conocidas'}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+
+                                            {/* Sección de Dependientes */}
+                                            <div className="fb-card" style={{ marginTop: '20px' }}>
+                                                <h3 className="fb-card-title">Dependientes</h3>
+                                                <div className="fb-dependents-list">
+                                                    {loadingDependents ? (
+                                                        <p className="fb-empty-state">Cargando...</p>
+                                                    ) : dependents.length > 0 ? (
+                                                        dependents.map(dependent => (
+                                                            <div key={dependent.id} className="fb-dependent-item" style={{
+                                                                padding: '12px',
+                                                                borderBottom: '1px solid #eee',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                gap: '12px'
+                                                            }}>
+                                                                {/* Foto del dependiente */}
+                                                                <div style={{
+                                                                    width: '50px',
+                                                                    height: '50px',
+                                                                    borderRadius: '50%',
+                                                                    overflow: 'hidden',
+                                                                    flexShrink: 0,
+                                                                    backgroundColor: '#f0f2f5',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}>
+                                                                    {dependent.profilePhoto ? (
+                                                                        <img 
+                                                                            src={`http://localhost:8080${dependent.profilePhoto}`}
+                                                                            alt={`${dependent.firstName} ${dependent.lastName}`}
+                                                                            style={{
+                                                                                width: '100%',
+                                                                                height: '100%',
+                                                                                objectFit: 'cover'
+                                                                            }}
+                                                                            onError={(e) => {
+                                                                                e.target.style.display = 'none';
+                                                                                e.target.parentElement.innerHTML = '<span style="font-size: 24px;">👤</span>';
+                                                                            }}
+                                                                        />
+                                                                    ) : (
+                                                                        <span style={{ fontSize: '24px' }}>👤</span>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                {/* Información del dependiente */}
+                                                                <div style={{ flex: 1 }}>
+                                                                    <strong>{dependent.firstName} {dependent.lastName}</strong>
+                                                                    <p style={{ fontSize: '12px', color: '#666', margin: '4px 0' }}>
+                                                                        {dependent.relationship} - Expediente: {dependent.expedienteNumber}
+                                                                    </p>
+                                                                </div>
+                                                                
+                                                                {/* Menú de tres puntos */}
+                                                                <div style={{
+                                                                    cursor: 'pointer',
+                                                                    padding: '8px',
+                                                                    fontSize: '20px',
+                                                                    color: '#65676b',
+                                                                    flexShrink: 0
+                                                                }}>
+                                                                    ⋮
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p className="fb-empty-state">No hay dependientes registrados</p>
+                                                    )}
+                                                    {dependents.length > 0 && (
+                                                        <button 
+                                                            className="fb-btn fb-btn-link" 
+                                                            onClick={() => navigate('/agregar-dependiente')}
+                                                        >
+                                                            + Agregar otro dependiente
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
                                     ) : (
                                         <div className="fb-card">
                                             <div className="alert alert-info">

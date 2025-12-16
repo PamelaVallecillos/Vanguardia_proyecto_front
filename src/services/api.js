@@ -276,6 +276,12 @@ export const apiService = {
         return api.delete(`/dependents/${dependentId}`);
     },
 
+    getDependentPhoto: (photoPath) => {
+        return api.get(photoPath, {
+            responseType: 'arraybuffer'
+        });
+    },
+
 }
 
 

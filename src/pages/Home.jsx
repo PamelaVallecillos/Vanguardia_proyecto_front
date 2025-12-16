@@ -23,7 +23,7 @@ const Home = () => {
                     <div className="hero-content">
                         <div className="hero-text">
                             <h1 className="hero-title">
-                                Bienvenido a  <span className="brand">AgendaSaud</span>
+                                Bienvenido a  <span className="brand">MediFam</span>
                             </h1>
                             <p className="hero-subtitle">
                                 Conéctate con profesionales de la salud desde la comodidad de tu hogar..
@@ -53,9 +53,29 @@ const Home = () => {
                             </div>
                         </div>
                         <div className="hero-image">
-                            <div className="image-placeholder">
-                                <div className="medical-icon">🏥</div>
-                                <p>Telemedicine Illustration</p>
+                            <div className="image-placeholder" style={{ 
+                                background: 'transparent',
+                                border: 'none',
+                                padding: '0'
+                            }}>
+                                <img 
+                                    src={`${process.env.PUBLIC_URL}/medifam-logo.png`}
+                                    alt="MediFam Salud - La salud de tu familia, en buenas manos" 
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '350px',
+                                        height: 'auto',
+                                        borderRadius: '50%',
+                                        objectFit: 'contain'
+                                    }}
+                                    onError={(e) => {
+                                        console.error('Error loading image');
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                                <p style={{ marginTop: '20px', fontSize: '18px', color: '#f9fafcff', fontStyle: 'italic', fontWeight: '500' }}>
+                                    La salud de tu familia, en buenas manos.
+                                </p>
                             </div>
                         </div>
                     </div>

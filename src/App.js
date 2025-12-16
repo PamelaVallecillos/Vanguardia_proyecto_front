@@ -67,7 +67,8 @@ function App() {
 
       </Routes>
 
-      <Footer />
+      {/* Footer temporalmente deshabilitado */}
+      {/* <Footer /> */}
     </BrowserRouter>
   );
 }

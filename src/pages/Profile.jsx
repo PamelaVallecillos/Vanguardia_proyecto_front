@@ -13,6 +13,8 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState('info-medica');
     const [appointments, setAppointments] = useState([]);
     const [consultations, setConsultations] = useState([]);
+    const [dependents, setDependents] = useState([]);
+    const [loadingDependents, setLoadingDependents] = useState(false);
 
     const [error, setError] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -23,6 +25,7 @@ const Profile = () => {
 
     useEffect(() => {
         fetchUserData();
+        fetchDependents();
     }, [])
 
 
@@ -79,6 +82,20 @@ const Profile = () => {
             console.error('Error al cargar consultas:', error);
         }
     }
+
+    const fetchDependents = async () => {
+        setLoadingDependents(true);
+        try {
+            const response = await apiService.getMyDependents();
+            if (response.data.statusCode === 200) {
+                setDependents(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar dependientes:', error);
+        } finally {
+            setLoadingDependents(false);
+        }
+    };
 
     const formatDateTime = (dateTimeString) => {
         try {
@@ -359,8 +376,36 @@ const Profile = () => {
                             <div className="fb-card">
                                 <h3 className="fb-card-title">Dependientes</h3>
                                 <div className="fb-dependents-list">
-                                    <p className="fb-empty-state">No hay dependientes registrados</p>
-                                    <button className="fb-btn fb-btn-link">Ver todos los dependientes</button>
+                                    {loadingDependents ? (
+                                        <p className="fb-empty-state">Cargando...</p>
+                                    ) : dependents.length > 0 ? (
+                                        dependents.map(dependent => (
+                                            <div key={dependent.id} className="fb-dependent-item" style={{
+                                                padding: '12px',
+                                                borderBottom: '1px solid #eee',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}>
+                                                <div>
+                                                    <strong>{dependent.firstName} {dependent.lastName}</strong>
+                                                    <p style={{ fontSize: '12px', color: '#666', margin: '4px 0' }}>
+                                                        {dependent.relationship} - Expediente: {dependent.expedienteNumber}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="fb-empty-state">No hay dependientes registrados</p>
+                                    )}
+                                    {dependents.length > 0 && (
+                                        <button 
+                                            className="fb-btn fb-btn-link" 
+                                            onClick={() => navigate('/agregar-dependiente')}
+                                        >
+                                            + Agregar otro dependiente
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -388,6 +433,12 @@ const Profile = () => {
                                     {patientData ? (
                                         <div className="fb-card">
                                             <h3 className="fb-card-title">Información Médica</h3>
+                                            
+                                            {/* Número de Expediente */}
+                                            <div className="alert alert-info" style={{ marginBottom: '20px' }}>
+                                                <strong>Número de Expediente:</strong> {patientData.expedienteNumber || 'No asignado'}
+                                            </div>
+                                            
                                             <div className="fb-medical-grid">
                                                 <div className="fb-medical-item">
                                                     <label>Nombre</label>

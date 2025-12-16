@@ -241,16 +241,31 @@ export const apiService = {
 
     // DEPENDENTS MANAGEMENT
 
-    addDependent: (dependentDTO) => {
-        return api.post("/dependents", dependentDTO);
+    addDependent: (patientId, dependentDTO) => {
+        return api.post(`/dependents/register/${patientId}`, dependentDTO);
+    },
+
+    uploadDependentPhoto: (dependentId, file) => {
+        const formData = new FormData();
+        formData.append('photo', file);
+        
+        return api.post(`/dependents/${dependentId}/upload-photo`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     },
 
     getMyDependents: () => {
-        return api.get("/dependents");
+        return api.get("/dependents/my-dependents");
     },
 
     getDependentById: (dependentId) => {
         return api.get(`/dependents/${dependentId}`);
+    },
+
+    getMyPatients: () => {
+        return api.get("/patients/my-patients");
     },
 
     updateDependent: (dependentId, dependentDTO) => {

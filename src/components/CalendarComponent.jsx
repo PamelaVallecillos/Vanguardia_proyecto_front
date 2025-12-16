@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { parseLocalDateTimeToDate } from '../utils/dateUtils';
 
 const CalendarComponent = ({ appointments = [] }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -38,15 +39,15 @@ const CalendarComponent = ({ appointments = [] }) => {
                 return apt.appointmentDate === dateStr;
             }
 
-            // If appointment has a startTime (ISO) parse it
-            if (apt.startTime) {
-                try {
-                    const d = new Date(apt.startTime);
-                    return normalizeDateStr(d) === dateStr;
-                } catch (e) {
-                    return false;
+                // If appointment has a startTime (local-ISO or ISO) parse it
+                if (apt.startTime) {
+                    try {
+                        const d = parseLocalDateTimeToDate(apt.startTime) || new Date(apt.startTime);
+                        return normalizeDateStr(d) === dateStr;
+                    } catch (e) {
+                        return false;
+                    }
                 }
-            }
 
             // Fallback: no date info
             return false;
@@ -66,9 +67,10 @@ const CalendarComponent = ({ appointments = [] }) => {
     };
 
     const formatTime = (apt) => {
-        if (apt.startTime) {
+            if (apt.startTime) {
             try {
-                return new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const d = parseLocalDateTimeToDate(apt.startTime) || new Date(apt.startTime);
+                return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             } catch (e) {
                 return apt.appointmentTime || '';
             }
@@ -188,7 +190,7 @@ const CalendarComponent = ({ appointments = [] }) => {
                             </div>
                             <div className="modal-info-item">
                                 <strong>Fecha:</strong> {selectedAppointment.startTime 
-                                    ? new Date(selectedAppointment.startTime).toLocaleDateString('es-ES', { 
+                                    ? (parseLocalDateTimeToDate(selectedAppointment.startTime) || new Date(selectedAppointment.startTime)).toLocaleDateString('es-ES', { 
                                         year: 'numeric', 
                                         month: 'long', 
                                         day: 'numeric' 

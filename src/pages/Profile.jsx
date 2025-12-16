@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { FiChevronDown } from 'react-icons/fi';
 import CalendarComponent from '../components/CalendarComponent';
+import { parseLocalDateTimeToDate } from '../utils/dateUtils';
 
 
 
@@ -109,7 +110,8 @@ const Profile = () => {
 
     const formatDateTime = (dateTimeString) => {
         try {
-            return new Date(dateTimeString).toLocaleString('es-ES', {
+            const d = parseLocalDateTimeToDate(dateTimeString) || new Date(dateTimeString);
+            return d.toLocaleString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -594,15 +596,24 @@ const Profile = () => {
                                                             <h3 className="doctor-name">Dr. {appointment.doctor?.firstName} {appointment.doctor?.lastName}</h3>
                                                             <p className="specialization">{appointment.doctor?.specialization?.replace(/_/g, ' ')}</p>
                                                         </div>
-                                                        <div className="appointment-actions">
+                                                            <div className="appointment-actions">
                                                             {getStatusBadge(appointment.status)}
                                                             {appointment.status === 'SCHEDULED' && (
-                                                                <button
-                                                                    onClick={() => handleCancelAppointment(appointment.id)}
-                                                                    className="btn btn-danger btn-sm"
-                                                                >
-                                                                    Cancel
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => navigate('/book-appointment', { state: { editAppointment: appointment } })}
+                                                                        className="btn btn-outline btn-sm"
+                                                                        style={{ marginRight: 8 }}
+                                                                    >
+                                                                        Editar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleCancelAppointment(appointment.id)}
+                                                                        className="btn btn-danger btn-sm"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </>
                                                             )}
                                                         </div>
                                                     </div>

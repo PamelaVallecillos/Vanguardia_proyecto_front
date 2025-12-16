@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { ensureLocalIsoHasSeconds, toLocalIsoWithoutSeconds } from '../utils/dateUtils';
 
 
 const BookAppointment = () => {
@@ -21,8 +22,33 @@ const BookAppointment = () => {
     const navigate = useNavigate();
 
 
+    const location = useLocation();
+
     useEffect(() => {
         fetchDoctors();
+
+        // If navigated with an appointment to edit, prefill fields
+        const editAppointment = location.state?.editAppointment;
+        if (editAppointment) {
+            // backend may return local ISO like 'YYYY-MM-DDTHH:mm:ss' or an ISO with Z
+            const st = editAppointment.startTime;
+            let startVal = '';
+            if (st) {
+                // If it's a plain local ISO (no Z), take first 16 chars; if it has Z or offset, construct local ISO from Date
+                if (/Z|[+-]\d{2}:?\d{2}/.test(st)) {
+                    startVal = toLocalIsoWithoutSeconds(new Date(st));
+                } else {
+                    startVal = st.length >= 16 ? st.slice(0,16) : st;
+                }
+            }
+
+            setFormData({
+                doctorId: editAppointment.doctor?.id ? String(editAppointment.doctor.id) : String(editAppointment.doctorId || ''),
+                purposeOfConsultation: editAppointment.purposeOfConsultation || '',
+                initialSymptoms: editAppointment.initialSymptoms || '',
+                startTime: startVal
+            });
+        }
     }, [])
 
 
@@ -73,11 +99,13 @@ const BookAppointment = () => {
             return;
         }
 
-        // Convert local datetime to ISO format
+        // Send startTime as local ISO without timezone (backend uses LocalDateTime)
+        const startLocal = formData.startTime ? ensureLocalIsoHasSeconds(formData.startTime) : null; // e.g. '2025-12-22T08:30:00'
+
         const appointmentData = {
             ...formData,
             doctorId: parseInt(formData.doctorId),
-            startTime: new Date(formData.startTime).toISOString()
+            startTime: startLocal
         };
 
         try {

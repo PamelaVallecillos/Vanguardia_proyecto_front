@@ -14,6 +14,7 @@ import BookAppointment from "./pages/BookAppointment";
 import MyAppointments from "./pages/MyAppointments";
 import ConsultationHistory from "./pages/ConsultationHistory";
 import Dependiente from "./pages/Dependiente";
+import DependentProfile from "./pages/DependentProfile";
 import { DoctorsAndPatientRoute, DoctorsOnlyRoute, PatientsOnlyRoute } from "./services/Guard";
 import DoctorProfile from "./pages/doctors/DoctorProfile";
 import UpdateDoctorProfile from "./pages/doctors/UpdateDoctorProfile";
@@ -48,6 +49,7 @@ function App() {
         <Route path="/my-appointments" element={<PatientsOnlyRoute element={<MyAppointments />} />} />
         <Route path="/consultation-history" element={<PatientsOnlyRoute element={<ConsultationHistory />} />} />
         <Route path="/agregar-dependiente" element={<PatientsOnlyRoute element={<Dependiente />} />} />
+        <Route path="/dependents/:id" element={<PatientsOnlyRoute element={<DependentProfile />} />} />
 
 
         {/* PATIENT & DOCTORS ACCOUNT ROUTES */}

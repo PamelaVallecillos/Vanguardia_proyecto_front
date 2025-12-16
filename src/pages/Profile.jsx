@@ -15,6 +15,7 @@ const Profile = () => {
     const [consultations, setConsultations] = useState([]);
     const [dependents, setDependents] = useState([]);
     const [loadingDependents, setLoadingDependents] = useState(false);
+    const [openMenuId, setOpenMenuId] = useState(null);
 
     const [error, setError] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -95,6 +96,15 @@ const Profile = () => {
         } finally {
             setLoadingDependents(false);
         }
+    };
+
+    const handleToggleMenu = (id) => {
+        setOpenMenuId(prev => (prev === id ? null : id));
+    };
+
+    const handleViewProfile = (dependentId) => {
+        setOpenMenuId(null);
+        navigate(`/dependents/${dependentId}`);
     };
 
     const formatDateTime = (dateTimeString) => {
@@ -452,7 +462,8 @@ const Profile = () => {
                                                                 display: 'flex',
                                                                 justifyContent: 'space-between',
                                                                 alignItems: 'center',
-                                                                gap: '12px'
+                                                                gap: '12px',
+                                                                position: 'relative'
                                                             }}>
                                                                 {/* Foto del dependiente */}
                                                                 <div style={{
@@ -494,14 +505,50 @@ const Profile = () => {
                                                                 </div>
                                                                 
                                                                 {/* Menú de tres puntos */}
-                                                                <div style={{
-                                                                    cursor: 'pointer',
-                                                                    padding: '8px',
-                                                                    fontSize: '20px',
-                                                                    color: '#65676b',
-                                                                    flexShrink: 0
-                                                                }}>
-                                                                    ⋮
+                                                                <div style={{ flexShrink: 0, position: 'relative' }}>
+                                                                    <button
+                                                                        onClick={() => handleToggleMenu(dependent.id)}
+                                                                        aria-expanded={openMenuId === dependent.id}
+                                                                        style={{
+                                                                            cursor: 'pointer',
+                                                                            padding: '8px',
+                                                                            fontSize: '18px',
+                                                                            color: '#65676b',
+                                                                            background: 'transparent',
+                                                                            border: 'none'
+                                                                        }}
+                                                                    >
+                                                                        ⋮
+                                                                    </button>
+
+                                                                    {openMenuId === dependent.id && (
+                                                                        <div style={{
+                                                                            position: 'absolute',
+                                                                            right: 0,
+                                                                            top: '36px',
+                                                                            background: '#fff',
+                                                                            boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
+                                                                            borderRadius: '6px',
+                                                                            zIndex: 50,
+                                                                            minWidth: '140px',
+                                                                            overflow: 'hidden'
+                                                                        }}>
+                                                                            <button
+                                                                                onClick={() => handleViewProfile(dependent.id)}
+                                                                                style={{
+                                                                                    display: 'block',
+                                                                                    width: '100%',
+                                                                                    textAlign: 'left',
+                                                                                    padding: '10px 12px',
+                                                                                    border: 'none',
+                                                                                    background: 'transparent',
+                                                                                    cursor: 'pointer'
+                                                                                }}
+                                                                            >
+                                                                                Ver perfil
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         ))
@@ -681,6 +728,7 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 

@@ -16,7 +16,12 @@ const Profile = () => {
     const [consultations, setConsultations] = useState([]);
     const [dependents, setDependents] = useState([]);
     const [loadingDependents, setLoadingDependents] = useState(false);
+    const [doctors, setDoctors] = useState([]);
+    const [loadingDoctors, setLoadingDoctors] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
+    const [openDoctorMenuId, setOpenDoctorMenuId] = useState(null);
+    const [showDoctorModal, setShowDoctorModal] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState(null);
 
     const [error, setError] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -99,6 +104,20 @@ const Profile = () => {
         }
     };
 
+    const fetchDoctors = async () => {
+        setLoadingDoctors(true);
+        try {
+            const response = await apiService.getAllDoctors();
+            if (response.data.statusCode === 200) {
+                setDoctors(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar doctores:', error);
+        } finally {
+            setLoadingDoctors(false);
+        }
+    };
+
     const handleToggleMenu = (id) => {
         setOpenMenuId(prev => (prev === id ? null : id));
     };
@@ -106,6 +125,43 @@ const Profile = () => {
     const handleViewProfile = (dependentId) => {
         setOpenMenuId(null);
         navigate(`/dependents/${dependentId}`);
+    };
+
+    const handleToggleDoctorMenu = (id) => {
+        setOpenDoctorMenuId(prev => (prev === id ? null : id));
+    };
+
+    const handleViewDoctorDetails = (doctorId) => {
+        setOpenDoctorMenuId(null);
+        const doctor = doctors.find(d => d.id === doctorId);
+        if (doctor) {
+            console.log('Doctor seleccionado COMPLETO:', JSON.stringify(doctor, null, 2));
+            console.log('Campos del doctor:', Object.keys(doctor));
+            console.log('minPatientAge:', doctor.minPatientAge);
+            console.log('maxPatientAge:', doctor.maxPatientAge);
+            console.log('workingHours:', doctor.workingHours);
+            console.log('availability:', doctor.availability);
+            console.log('schedule:', doctor.schedule);
+            console.log('restrictions:', doctor.restrictions);
+            console.log('patientRestrictions:', doctor.patientRestrictions);
+            setSelectedDoctor(doctor);
+            setShowDoctorModal(true);
+        }
+    };
+
+    const handleCloseDoctorModal = () => {
+        setShowDoctorModal(false);
+        setSelectedDoctor(null);
+    };
+
+    const formatSpecialization = (spec) => {
+        if (!spec) return 'No especificado';
+        return spec.replace(/_/g, ' ');
+    };
+
+    const formatWorkingHours = (hours) => {
+        if (!hours || hours.length === 0) return 'No especificado';
+        return hours.join(', ');
     };
 
     const formatDateTime = (dateTimeString) => {
@@ -212,6 +268,19 @@ const Profile = () => {
             month: 'long',
             day: 'numeric'
         });
+    };
+
+    const formatGender = (gender) => {
+        if (!gender) return 'No proporcionado';
+        const map = {
+            'MASCULINO': 'Masculino',
+            'FEMENINO': 'Femenino',
+            'MALE': 'Masculino',
+            'FEMALE': 'Femenino',
+            'OTHER': 'Otro',
+            'UNKNOWN': 'Prefiero no decir'
+        };
+        return map[gender] || gender;
     };
 
     const formatBloodGroup = (bloodGroup) => {
@@ -336,12 +405,7 @@ const Profile = () => {
                         >
                             Información Médica
                         </button>
-                        <button 
-                            className={`fb-tab ${activeTab === 'hacer-cita' ? 'active' : ''}`}
-                            onClick={() => navigate('/book-appointment')}
-                        >
-                            Hacer cita
-                        </button>
+                        {/* 'Hacer cita' removed — use Nav 'Reservar cita' instead */}
                         <button 
                             className={`fb-tab ${activeTab === 'mis-citas' ? 'active' : ''}`}
                             onClick={() => {
@@ -361,10 +425,13 @@ const Profile = () => {
                             Historial de consultas
                         </button>
                         <button 
-                            className={`fb-tab ${activeTab === 'historial-doctores' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('historial-doctores')}
+                            className={`fb-tab ${activeTab === 'doctores' ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveTab('doctores');
+                                fetchDoctors();
+                            }}
                         >
-                            Historial de Doctores
+                            Doctores
                         </button>
                         <button 
                             className={`fb-tab ${activeTab === 'calendario' ? 'active' : ''}`}
@@ -411,10 +478,14 @@ const Profile = () => {
                                                 {`${patientData.firstName || ''} ${patientData.lastName || ''}`.trim() || 'No proporcionado'}
                                             </span>
                                         </div>
-                                        <div className="fb-info-item">
-                                            <span className="fb-info-icon">📅</span>
-                                            <span className="fb-info-text">{formatDate(patientData.dateOfBirth)}</span>
-                                        </div>
+                                                <div className="fb-info-item">
+                                                    <span className="fb-info-icon">📅</span>
+                                                    <span className="fb-info-text">{formatDate(patientData.dateOfBirth)}</span>
+                                                </div>
+                                                <div className="fb-info-item">
+                                                    <span className="fb-info-icon">🚻</span>
+                                                    <span className="fb-info-text">{formatGender(patientData.gender)}</span>
+                                                </div>
                                     </div>
                                 </div>
                             )}
@@ -720,10 +791,114 @@ const Profile = () => {
                                 </div>
                             )}
 
-                            {activeTab === 'historial-doctores' && (
+                            {activeTab === 'doctores' && (
                                 <div className="fb-card">
-                                    <h3 className="fb-card-title">Historial de Doctores</h3>
-                                    <p className="fb-empty-state">No hay historial de doctores disponible</p>
+                                    <h3 className="fb-card-title">Doctores</h3>
+                                    <div className="fb-dependents-list">
+                                        {loadingDoctors ? (
+                                            <p className="fb-empty-state">Cargando...</p>
+                                        ) : doctors.length > 0 ? (
+                                            doctors.map(doctor => (
+                                                <div key={doctor.id} className="fb-dependent-item" style={{
+                                                    padding: '12px',
+                                                    borderBottom: '1px solid #eee',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    gap: '12px',
+                                                    position: 'relative'
+                                                }}>
+                                                    {/* Foto del doctor */}
+                                                    <div style={{
+                                                        width: '50px',
+                                                        height: '50px',
+                                                        borderRadius: '50%',
+                                                        overflow: 'hidden',
+                                                        flexShrink: 0,
+                                                        backgroundColor: '#f0f2f5',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        {doctor.user?.profilePictureUrl ? (
+                                                            <img 
+                                                                src={`http://localhost:8080${doctor.user.profilePictureUrl}`}
+                                                                alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    objectFit: 'cover'
+                                                                }}
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.parentElement.innerHTML = '<span style="font-size: 24px;">👨‍⚕️</span>';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <span style={{ fontSize: '24px' }}>👨‍⚕️</span>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Información del doctor */}
+                                                    <div style={{ flex: 1 }}>
+                                                        <strong>Dr. {doctor.firstName} {doctor.lastName}</strong>
+                                                        <p style={{ fontSize: '12px', color: '#666', margin: '4px 0' }}>
+                                                            {doctor.specialization?.replace(/_/g, ' ')}
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {/* Menú de tres puntos */}
+                                                    <div style={{ flexShrink: 0, position: 'relative' }}>
+                                                        <button
+                                                            onClick={() => handleToggleDoctorMenu(doctor.id)}
+                                                            aria-expanded={openDoctorMenuId === doctor.id}
+                                                            style={{
+                                                                cursor: 'pointer',
+                                                                padding: '8px',
+                                                                fontSize: '18px',
+                                                                color: '#65676b',
+                                                                background: 'transparent',
+                                                                border: 'none'
+                                                            }}
+                                                        >
+                                                            ⋮
+                                                        </button>
+
+                                                        {openDoctorMenuId === doctor.id && (
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                right: 0,
+                                                                top: '36px',
+                                                                background: '#fff',
+                                                                boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
+                                                                borderRadius: '6px',
+                                                                zIndex: 50,
+                                                                minWidth: '140px',
+                                                                overflow: 'hidden'
+                                                            }}>
+                                                                <button
+                                                                    onClick={() => handleViewDoctorDetails(doctor.id)}
+                                                                    style={{
+                                                                        display: 'block',
+                                                                        width: '100%',
+                                                                        textAlign: 'left',
+                                                                        padding: '10px 12px',
+                                                                        border: 'none',
+                                                                        background: 'transparent',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    Ver detalles
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="fb-empty-state">No hay doctores registrados</p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
@@ -739,6 +914,382 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Detalles del Doctor */}
+            {showDoctorModal && selectedDoctor && (
+                <div 
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '20px'
+                    }}
+                    onClick={handleCloseDoctorModal}
+                >
+                    <div 
+                        style={{
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            maxWidth: '700px',
+                            width: '100%',
+                            maxHeight: '90vh',
+                            overflow: 'auto',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                            position: 'relative'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header del Modal */}
+                        <div style={{
+                            padding: '24px',
+                            borderBottom: '1px solid #e1e8ed',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            borderRadius: '12px 12px 0 0',
+                            color: 'white'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    borderRadius: '50%',
+                                    overflow: 'hidden',
+                                    backgroundColor: '#fff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}>
+                                    {selectedDoctor.user?.profilePictureUrl ? (
+                                        <img 
+                                            src={`http://localhost:8080${selectedDoctor.user.profilePictureUrl}`}
+                                            alt={`Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover'
+                                            }}
+                                        />
+                                    ) : (
+                                        <span style={{ fontSize: '30px' }}>👨‍⚕️</span>
+                                    )}
+                                </div>
+                                <div>
+                                    <h2 style={{ margin: 0, fontSize: '24px' }}>Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}</h2>
+                                    <p style={{ margin: '4px 0 0 0', opacity: 0.9 }}>{formatSpecialization(selectedDoctor.specialization)}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleCloseDoctorModal}
+                                style={{
+                                    background: 'rgba(255,255,255,0.2)',
+                                    border: 'none',
+                                    color: 'white',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: 0
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Contenido del Modal */}
+                        <div style={{ padding: '24px' }}>
+                            {/* Información Profesional */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h3 style={{ 
+                                    fontSize: '18px', 
+                                    fontWeight: '600', 
+                                    marginBottom: '16px',
+                                    color: '#2c3e50',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px'
+                                }}>
+                                    Información Profesional
+                                </h3>
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: 'repeat(2, 1fr)', 
+                                    gap: '16px',
+                                    backgroundColor: '#f8f9fa',
+                                    padding: '16px',
+                                    borderRadius: '8px'
+                                }}>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Número de Licencia
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {selectedDoctor.licenseNumber || 'No especificado'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Tiempo de Consulta
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {selectedDoctor.consultationDuration || 'No especificado'} minutos
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Especialización Principal
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {formatSpecialization(selectedDoctor.specialization)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Especializaciones Adicionales
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {selectedDoctor.additionalSpecializations && selectedDoctor.additionalSpecializations.length > 0 
+                                                ? selectedDoctor.additionalSpecializations.map(s => formatSpecialization(s)).join(', ')
+                                                : 'Ninguna'}
+                                        </p>
+                                    </div>
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Email profesional
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {selectedDoctor.user?.email || 'No especificado'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Restricciones de Pacientes */}
+                            <div style={{ marginBottom: '24px' }}>
+                                <h3 style={{ 
+                                    fontSize: '18px', 
+                                    fontWeight: '600', 
+                                    marginBottom: '16px',
+                                    color: '#2c3e50',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px'
+                                }}>
+                                    Restricciones de Pacientes
+                                </h3>
+                                <div style={{ 
+                                    backgroundColor: '#f8f9fa',
+                                    padding: '16px',
+                                    borderRadius: '8px',
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(3, 1fr)',
+                                    gap: '16px'
+                                }}>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Restricción de Género
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50' }}>
+                                            {selectedDoctor.genderRestriction 
+                                                ? (selectedDoctor.genderRestriction === 'FEMALE' ? 'Solo Mujeres' : 
+                                                   selectedDoctor.genderRestriction === 'MALE' ? 'Solo Hombres' : 
+                                                   selectedDoctor.genderRestriction)
+                                                : 'Sin restricción'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Edad Mínima
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50', fontWeight: '500' }}>
+                                            {selectedDoctor.minAge !== null && selectedDoctor.minAge !== undefined 
+                                                ? `${selectedDoctor.minAge} años` 
+                                                : 'Sin restricción'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ 
+                                            fontSize: '12px', 
+                                            color: '#65676b', 
+                                            fontWeight: '600',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>
+                                            Edad Máxima
+                                        </label>
+                                        <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#2c3e50', fontWeight: '500' }}>
+                                            {selectedDoctor.maxAge !== null && selectedDoctor.maxAge !== undefined 
+                                                ? `${selectedDoctor.maxAge} años` 
+                                                : 'Sin restricción'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Horario de Atención */}
+                            <div>
+                                <h3 style={{ 
+                                    fontSize: '18px', 
+                                    fontWeight: '600', 
+                                    marginBottom: '16px',
+                                    color: '#2c3e50',
+                                    borderLeft: '4px solid #667eea',
+                                    paddingLeft: '12px'
+                                }}>
+                                    Horario de Atención
+                                </h3>
+                                <div style={{ 
+                                    backgroundColor: '#f8f9fa',
+                                    padding: '16px',
+                                    borderRadius: '8px'
+                                }}>
+                                    {selectedDoctor.schedules && selectedDoctor.schedules.length > 0 ? (
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '2px',
+                                            overflow: 'auto'
+                                        }}>
+                                            {/* Header */}
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: '120px 1fr 1fr',
+                                                gap: '12px',
+                                                padding: '8px 12px',
+                                                backgroundColor: '#e1e8ed',
+                                                borderRadius: '6px',
+                                                fontWeight: '600',
+                                                fontSize: '12px',
+                                                color: '#2c3e50',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px'
+                                            }}>
+                                                <div>Día</div>
+                                                <div>Horario</div>
+                                                <div>Almuerzo</div>
+                                            </div>
+                                            {/* Rows */}
+                                            {selectedDoctor.schedules.map((schedule, index) => {
+                                                const dayNames = {
+                                                    'MONDAY': 'Lunes',
+                                                    'TUESDAY': 'Martes',
+                                                    'WEDNESDAY': 'Miércoles',
+                                                    'THURSDAY': 'Jueves',
+                                                    'FRIDAY': 'Viernes',
+                                                    'SATURDAY': 'Sábado',
+                                                    'SUNDAY': 'Domingo'
+                                                };
+                                                
+                                                const day = dayNames[schedule.dayOfWeek] || schedule.dayOfWeek;
+                                                const hours = `${schedule.startTime} - ${schedule.endTime}`;
+                                                const lunch = schedule.lunchStart && schedule.lunchEnd 
+                                                    ? `${schedule.lunchStart} - ${schedule.lunchEnd}` 
+                                                    : 'Sin almuerzo';
+                                                
+                                                
+                                                return (
+                                                    <div key={schedule.id || index} style={{
+                                                        display: 'grid',
+                                                        gridTemplateColumns: '120px 1fr 1fr',
+                                                        gap: '12px',
+                                                        padding: '10px 12px',
+                                                        backgroundColor: index % 2 === 0 ? '#fff' : '#f8f9fa',
+                                                        borderRadius: '4px',
+                                                        fontSize: '14px',
+                                                        color: '#2c3e50'
+                                                    }}>
+                                                        <div style={{ fontWeight: '600' }}>{day}</div>
+                                                        <div style={{ color: '#667eea', fontWeight: '500' }}>{hours}</div>
+                                                        <div style={{ color: '#65676b', fontStyle: 'italic' }}>{lunch}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p style={{ 
+                                            margin: 0, 
+                                            fontSize: '14px', 
+                                            color: '#65676b',
+                                            fontStyle: 'italic'
+                                        }}>
+                                            No hay horarios especificados
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer del Modal */}
+                        <div style={{
+                            padding: '16px 24px',
+                            borderTop: '1px solid #e1e8ed',
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '0 0 12px 12px'
+                        }}>
+                            <button 
+                                onClick={handleCloseDoctorModal}
+                                className="btn btn-secondary"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

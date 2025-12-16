@@ -8,6 +8,7 @@ const UpdateProfile = () => {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
+        gender: '',
         phone: '',
         dateOfBirth: '',
         knownAllergies: '',
@@ -42,6 +43,7 @@ const UpdateProfile = () => {
                 setFormData({
                     firstName: patientData.firstName || '',
                     lastName: patientData.lastName || '',
+                    gender: patientData.gender || '',
                     phone: patientData.phone || '',
                     dateOfBirth: patientData.dateOfBirth || '',
                     knownAllergies: patientData.knownAllergies || '',
@@ -125,7 +127,7 @@ const UpdateProfile = () => {
 
     return (
         <div className="container">
-            <div className="form-container">
+            <div className="form-container form-container-wide">
                 <h2 className="form-title">Actualizar Perfil del Paciente</h2>
                 {error && (
                     <div className="alert alert-error">
@@ -140,7 +142,7 @@ const UpdateProfile = () => {
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <div className="form-row">
+                    <div className="form-row form-row-4" style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem'}}>
                         <div className="form-group">
                             <label className="form-label">Nombre</label>
                             <input
@@ -166,34 +168,48 @@ const UpdateProfile = () => {
                                 required
                             />
                         </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Número de Teléfono</label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                className="form-input"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="Ingresa tu número de teléfono"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Género</label>
+                            <select
+                                name="gender"
+                                className="form-select"
+                                value={formData.gender}
+                                onChange={handleChange}
+                            >
+                                <option value="">Selecciona género</option>
+                                <option value="MASCULINO">Masculino</option>
+                                <option value="FEMENINO">Femenino</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Número de Teléfono</label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            className="form-input"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Ingresa tu número de teléfono"
-                            required
-                        />
-                    </div>
+                    <div className="form-row form-row-3" style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem'}}>
+                        <div className="form-group">
+                            <label className="form-label">Fecha de Nacimiento</label>
+                            <input
+                                type="date"
+                                name="dateOfBirth"
+                                className="form-input"
+                                value={formData.dateOfBirth}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Fecha de Nacimiento</label>
-                        <input
-                            type="date"
-                            name="dateOfBirth"
-                            className="form-input"
-                            value={formData.dateOfBirth}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-row">
                         <div className="form-group">
                             <label className="form-label">Grupo Sanguíneo</label>
                             <select

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { ensureLocalIsoHasSeconds, toLocalIsoWithoutSeconds } from '../utils/dateUtils';
+import CalendarComponent from '../components/CalendarComponent';
 
 
 const BookAppointment = () => {
@@ -17,6 +18,8 @@ const BookAppointment = () => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadingDoctors, setLoadingDoctors] = useState(true);
+    const [doctorAppointments, setDoctorAppointments] = useState([]);
+    const [loadingAppointments, setLoadingAppointments] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
@@ -68,6 +71,41 @@ const BookAppointment = () => {
             setLoadingDoctors(false)
         }
     }
+
+    const fetchDoctorAppointments = async (doctorId) => {
+        if (!doctorId) {
+            setDoctorAppointments([]);
+            return;
+        }
+
+        setLoadingAppointments(true);
+        try {
+            // Create API endpoint to get doctor's appointments
+            const response = await apiService.getMyAppointments();
+            
+            if (response.data.statusCode === 200) {
+                // Filter appointments for selected doctor
+                const filtered = response.data.data.filter(apt => 
+                    apt.doctor?.id === parseInt(doctorId) || apt.doctorId === parseInt(doctorId)
+                );
+                setDoctorAppointments(filtered);
+            }
+        } catch (error) {
+            console.error('Error al cargar citas del doctor:', error);
+            setDoctorAppointments([]);
+        } finally {
+            setLoadingAppointments(false);
+        }
+    };
+
+    // Effect to load appointments when doctor selection changes
+    useEffect(() => {
+        if (formData.doctorId) {
+            fetchDoctorAppointments(formData.doctorId);
+        } else {
+            setDoctorAppointments([]);
+        }
+    }, [formData.doctorId]);
 
 
     const handleChange = (e) => {
@@ -156,23 +194,30 @@ const BookAppointment = () => {
 
 
     return (
-        <div className="container">
-            <div className="form-container">
-                <h2 className="form-title">Reservar Cita</h2>
+        <div className="container" style={{ maxWidth: '1400px' }}>
+            <h2 className="form-title" style={{ textAlign: 'center', marginBottom: '2rem' }}>Reservar Cita</h2>
+            
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: formData.doctorId ? '500px 1fr' : '1fr',
+                gap: '2rem',
+                alignItems: 'start'
+            }}>
+                {/* Formulario */}
+                <div className="form-container" style={{ margin: 0 }}>
+                    {error && (
+                        <div className="alert alert-error">
+                            {error}
+                        </div>
+                    )}
 
-                {error && (
-                    <div className="alert alert-error">
-                        {error}
-                    </div>
-                )}
+                    {success && (
+                        <div className="alert alert-success">
+                            {success}
+                        </div>
+                    )}
 
-                {success && (
-                    <div className="alert alert-success">
-                        {success}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label">Seleccione Doctor</label>
                         <select
@@ -236,23 +281,57 @@ const BookAppointment = () => {
                         <small className="form-help">Seleccione la fecha y hora preferida para la cita</small>
                     </div>
 
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleCancel}
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={loading || loadingDoctors}
-                        >
-                            {loading ? 'Reservando...' : 'Reservar Cita'}
-                        </button>
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={handleCancel}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={loading || loadingDoctors}
+                            >
+                                {loading ? 'Reservando...' : 'Reservar Cita'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Calendar to show doctor's availability */}
+                {formData.doctorId && (
+                    <div style={{ 
+                        backgroundColor: 'white',
+                        borderRadius: '10px',
+                        padding: '2rem',
+                        boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+                    }}>
+                        <h3 style={{ 
+                            fontSize: '1.5rem', 
+                            marginBottom: '1rem',
+                            color: '#2c3e50',
+                            textAlign: 'center'
+                        }}>
+                            Disponibilidad del Doctor
+                        </h3>
+                        <div className="alert alert-info" style={{ marginBottom: '1rem' }}>
+                            <strong>Nota:</strong> Los bloques marcados en el calendario muestran las citas ya reservadas. 
+                            Seleccione un horario disponible para su cita.
+                        </div>
+                        {loadingAppointments ? (
+                            <p style={{ textAlign: 'center', padding: '2rem', color: '#65676b' }}>
+                                Cargando disponibilidad...
+                            </p>
+                        ) : (
+                            <CalendarComponent 
+                                appointments={doctorAppointments}
+                                readOnly={true}
+                            />
+                        )}
                     </div>
-                </form>
+                )}
             </div>
         </div>
     );

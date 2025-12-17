@@ -182,6 +182,7 @@ const Home = () => {
                         <p>Atención médica integral en diversas áreas médicas</p>
 
                         {/* Google-like search bar placed under subtitle */}
+                        {/* COMENTADO TEMPORALMENTE - Se usará en el futuro
                         <form className="google-search" onSubmit={handleSearchSubmit} role="search" aria-label="Buscar especialidades">
                             <label htmlFor="specialty-search" className="sr-only">Buscar especialidad</label>
                             <div className="google-search__inner">
@@ -197,6 +198,7 @@ const Home = () => {
                                 />
                             </div>
                         </form>
+                        */}
                     </div>
                     <div className="specialties-grid">
                         <div className="specialty-card">

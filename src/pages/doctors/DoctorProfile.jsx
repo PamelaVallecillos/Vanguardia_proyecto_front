@@ -67,6 +67,8 @@ const DoctorProfile = () => {
             if (response.data.statusCode === 200) {
                 console.log('📋 DATOS DE CONSULTAS RECIBIDOS:', response.data.data);
                 console.log('📋 PRIMERA CONSULTA COMPLETA:', JSON.stringify(response.data.data[0], null, 2));
+                console.log('📋 ESTRUCTURA DEL PACIENTE:', response.data.data[0]?.patient);
+                console.log('📋 PATIENT NAME:', response.data.data[0]?.patientName);
                 setConsultations(response.data.data);
             }
         } catch (error) {
@@ -347,15 +349,6 @@ const DoctorProfile = () => {
                             }}
                         >
                             Historial de consultas
-                        </button>
-                        <button 
-                            className={`fb-tab ${activeTab === 'historial-pacientes' ? 'active' : ''}`}
-                            onClick={() => {
-                                setActiveTab('historial-pacientes');
-                                fetchPatients();
-                            }}
-                        >
-                            Historial de pacientes
                         </button>
                         <button 
                             className={`fb-tab ${activeTab === 'calendario' ? 'active' : ''}`}
@@ -655,7 +648,18 @@ const DoctorProfile = () => {
                                             {consultations.map((consultation) => (
                                                 <div key={consultation.id} className="fb-consultation-card">
                                                     <div className="fb-consultation-header">
-                                                        <h4>Consulta - {consultation.patientName || 'Paciente'}</h4>
+                                                        <div>
+                                                            <h4>
+                                                                Consulta - {consultation.patient 
+                                                                    ? `${consultation.patient.firstName} ${consultation.patient.lastName}` 
+                                                                    : consultation.patientName || 'Paciente'}
+                                                            </h4>
+                                                            {consultation.patient && (
+                                                                <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: '#65676b' }}>
+                                                                    <strong>N° Expediente:</strong> {consultation.patient.medicalRecordNumber || 'N/A'}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                         <span className="fb-consultation-date">
                                                             {new Date(consultation.consultationDate).toLocaleDateString('es-ES', {
                                                                 year: 'numeric',
@@ -671,6 +675,12 @@ const DoctorProfile = () => {
                                                             <div className="fb-consultation-section">
                                                                 <p><strong>Detalles de la Cita:</strong></p>
                                                                 <p>ID de Cita: {consultation.appointmentId}</p>
+                                                                {consultation.patient && (
+                                                                    <>
+                                                                        <p><strong>Paciente:</strong> {consultation.patient.firstName} {consultation.patient.lastName}</p>
+                                                                        <p><strong>N° Expediente:</strong> {consultation.patient.medicalRecordNumber || 'N/A'}</p>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                         {consultation.subjectiveNotes && (
@@ -733,29 +743,6 @@ const DoctorProfile = () => {
                                         </div>
                                     ) : (
                                         <p className="fb-empty-state">No hay consultas en el historial</p>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'historial-pacientes' && (
-                                <div className="fb-card">
-                                    <h3 className="fb-card-title">Historial de Pacientes</h3>
-                                    {patients.length > 0 ? (
-                                        <div className="fb-patients-list">
-                                            {patients.map((patient) => (
-                                                <div key={patient.id} className="fb-patient-card">
-                                                    <div className="fb-patient-header">
-                                                        <h4>{patient.firstName} {patient.lastName}</h4>
-                                                    </div>
-                                                    <div className="fb-patient-details">
-                                                        <p><strong>Última visita:</strong> {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString('es-ES') : 'N/A'}</p>
-                                                        <p><strong>Total de consultas:</strong> {patient.consultationsCount || 0}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="fb-empty-state">No hay historial de pacientes disponible</p>
                                     )}
                                 </div>
                             )}

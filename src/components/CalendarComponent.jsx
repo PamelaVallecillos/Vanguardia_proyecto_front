@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { parseLocalDateTimeToDate } from '../utils/dateUtils';
 
-const CalendarComponent = ({ appointments = [] }) => {
+const CalendarComponent = ({ appointments = [], readOnly = false }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedAppointment, setSelectedAppointment] = useState(null);
 
@@ -124,11 +124,13 @@ const CalendarComponent = ({ appointments = [] }) => {
                         {dayAppointments.slice(0, 3).map((apt, idx) => (
                             <div 
                                 key={idx} 
-                                className="calendar-event-item"
-                                onClick={() => setSelectedAppointment(apt)}
+                                className={`calendar-event-item ${readOnly ? 'read-only' : ''}`}
+                                onClick={() => !readOnly && setSelectedAppointment(apt)}
+                                style={readOnly ? { cursor: 'default' } : {}}
                             >
                                 <span className="event-time">{formatTime(apt)}</span>
-                                <span className="event-title">{truncateText(getAppointmentTitle(apt), 12)}</span>
+                                {!readOnly && <span className="event-title">{truncateText(getAppointmentTitle(apt), 12)}</span>}
+                                {readOnly && <span className="event-title" style={{ color: '#999', fontSize: '11px' }}>Ocupado</span>}
                             </div>
                         ))}
                         {dayAppointments.length > 3 && (
@@ -173,11 +175,11 @@ const CalendarComponent = ({ appointments = [] }) => {
                 </div>
                 <div className="legend-item">
                     <span className="legend-dot appointment-dot"></span>
-                    <span>Citas programadas</span>
+                    <span>{readOnly ? 'Horarios ocupados' : 'Citas programadas'}</span>
                 </div>
             </div>
 
-            {selectedAppointment && (
+            {selectedAppointment && !readOnly && (
                 <div className="calendar-modal-overlay" onClick={closeModal}>
                     <div className="calendar-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="calendar-modal-header">

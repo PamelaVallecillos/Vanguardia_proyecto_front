@@ -86,7 +86,15 @@ const ConsultationHistory = () => {
                         {consultations.map((consultation) => (
                             <div key={consultation.id} className="consultation-card">
                                 <div className="consultation-header">
-                                    <h3>Notas de Consulta</h3>
+                                    <div>
+                                        <h3>Notas de Consulta</h3>
+                                        {consultation.patient && (
+                                            <p style={{ margin: '8px 0 0 0', fontSize: '0.95rem', color: '#65676b' }}>
+                                                <strong>Paciente:</strong> {consultation.patient.firstName} {consultation.patient.lastName} | 
+                                                <strong> N° Expediente:</strong> {consultation.patient.medicalRecordNumber || 'N/A'}
+                                            </p>
+                                        )}
+                                    </div>
                                     <span className="consultation-date">
                                         {formatDateTime(consultation.consultationDate)}
                                     </span>
